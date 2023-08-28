@@ -1,0 +1,8 @@
+__pycache__/
+__pypackages__/
+.env
+.venv
+env/
+venv/
+
+/ct2_linellm/

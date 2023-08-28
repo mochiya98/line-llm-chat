@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>line-llm-chat</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700;800&display=swap");
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body,
+      #app {
+        height: 100%;
+      }
+      #app {
+        --color-talk-border: #666;
+        --color-app-background: #222;
+        --color-app-desc: #666;
+        display: flex;
+        flex-direction: column;
+        font-size: 16px;
+        line-height: 1.5;
+        font-family: Koruri, "Open Sans", "Noto Sans Japanese", "Kosugi Maru",
+          sans-serif;
+        background-color: var(--color-app-background);
+        color: #fff;
+      }
+      .tl {
+        flex: 1;
+        min-height: 0;
+        overflow-y: scroll;
+      }
+      .tl ::selection {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .tl:before {
+        content: "";
+        display: block;
+        height: calc(100% - 142px);
+      }
+      .t0.p .t4 {
+        opacity: 0.5;
+      }
+      .t0.p .t6::before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #444, transparent);
+        animation: mocka-dot-a 2s infinite;
+        transform: translateX(-100%);
+        z-index: -1;
+      }
+      @keyframes mocka-dot-a {
+        8% {
+          transform: translateX(-100%);
+        }
+        80% {
+          transform: translateX(100vw);
+        }
+        100% {
+          transform: translateX(100vw);
+        }
+      }
+      .t1,
+      .t4 {
+        position: relative;
+      }
+      .t1::before {
+        content: "/";
+        display: block;
+        position: absolute;
+        top: 2px;
+        left: 12px;
+        width: 34px;
+        height: 34px;
+        font-size: 24px;
+        line-height: 34px;
+        text-align: center;
+        background-color: #90f;
+        color: #fff;
+        border-radius: 50%;
+        overflow: hidden;
+        font-weight: bold;
+        font-family: "Kosugi Maru", sans-serif;
+      }
+      .t4::before {
+        content: "L";
+        display: block;
+        position: absolute;
+        top: 2px;
+        right: 12px;
+        width: 34px;
+        height: 34px;
+        font-size: 24px;
+        line-height: 34px;
+        text-align: center;
+        background-color: #06c755;
+        color: #fff;
+        border-radius: 50%;
+        overflow: hidden;
+        font-weight: bold;
+        font-family: "Kosugi Maru", sans-serif;
+      }
+
+      .t1 {
+        padding-left: 50px;
+      }
+      .t4 {
+        padding-right: 50px;
+      }
+
+      .t2,
+      .t5 {
+        position: relative;
+        z-index: 1;
+        margin: 10px;
+      }
+      .t2::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: -5.5px;
+        width: 10px;
+        height: 10px;
+        border: 1px solid var(--color-talk-border);
+        border-width: 0 0 2px 2px;
+        transform: rotate(45deg);
+        background-color: var(--color-app-background);
+        z-index: 2;
+      }
+      .t5::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        right: -5.5px;
+        width: 10px;
+        height: 10px;
+        border: 1px solid var(--color-talk-border);
+        border-width: 2px 2px 0 0;
+        transform: rotate(45deg);
+        background: linear-gradient(
+          45deg,
+          transparent 40%,
+          var(--color-app-background) 40%
+        );
+        z-index: 2;
+      }
+      .t3,
+      .t6 {
+        position: relative;
+        padding: 5px;
+        border: 2px solid var(--color-talk-border);
+        border-radius: 4px;
+        z-index: 1;
+        white-space: pre-wrap;
+        min-height: 24px;
+        overflow: hidden;
+      }
+      .tu {
+        border-top: 2px solid #666;
+        display: flex;
+      }
+      .ti {
+        padding: 10px;
+        display: block;
+        background-color: transparent;
+        font-size: inherit;
+        line-height: inherit;
+        color: inherit;
+        border: 0;
+        outline: none;
+        appearance: none;
+        flex: 1;
+        height: 24px;
+        resize: none;
+      }
+      .tsb {
+        position: relative;
+      }
+      .tsb::before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 9.5px;
+        left: 14px;
+        width: 24px;
+        height: 12px;
+        background: linear-gradient(26.565deg, #fff 50%, transparent 50%);
+        transform: skew(15deg, 5deg);
+      }
+      .tsb::after {
+        content: "";
+        display: block;
+        position: absolute;
+        bottom: 9.5px;
+        left: 14px;
+        width: 24px;
+        height: 12px;
+        background: linear-gradient(-26.565deg, transparent 50%, #fff 50%);
+        transform: skew(-15deg, -5deg);
+      }
+      .ts {
+        display: block;
+        background-color: #080;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        padding: 0;
+        appearance: none;
+        font-size: 30px;
+        line-height: 44px;
+        width: 50px;
+        text-align: center;
+        font-family: "Kosugi Maru", sans-serif;
+      }
+      .t8 {
+        color: #999;
+        font-size: 12px;
+        user-select: none;
+      }
+      .ai {
+        color: var(--color-app-desc);
+        padding: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .ait {
+        font-size: 80px;
+        line-height: 1;
+      }
+      .aid {
+        line-height: 21px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="tl">
+        <div class="ai">
+          <div class="ait">Hello, llm.</div>
+          <div class="aid">
+            @mochiya98<br />
+            model: line-corporation/japanese-large-lm-3.6b-instruction-sft
+          </div>
+        </div>
+      </div>
+      <div class="tu">
+        <textarea class="ti"></textarea>
+        <div class="tsb">
+          <button class="ts">&nbsp;</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      let tl = document.querySelector("#app .tl"),
+        ti = document.querySelector("#app .ti"),
+        lh = -1,
+        u = () => {
+          if (tl.scrollHeight !== lh) {
+            lh = tl.scrollHeight;
+            tl.scrollTo({
+              top: lh,
+              behavior: "smooth",
+            });
+          }
+        },
+        m = (t) => {
+          let n = 0,
+            o = [],
+            m = (p, a) => (
+              (p = p.appendChild(document.createElement("div"))),
+              p.classList.add("t" + n++),
+              a.map ? a.map((c) => m(p, c)) : o.push(p),
+              p
+            ),
+            w = m(tl, [[[0]], [[[1, 2]]]]);
+          o[0].textContent = t;
+          w.classList.add("p");
+          u();
+          return {
+            s: () => {
+              n = Date.now();
+            },
+            a: (t) => {
+              o[1].textContent = t;
+              o[2].textContent = `${(Date.now() - n) / 1000}s`;
+              u();
+            },
+            e: () => u(w.classList.remove("p")),
+          };
+        },
+        jq = Promise.resolve(),
+        h = [],
+        hi = h.length,
+        q = async (t) => {
+          t = t.trim();
+          if (t.length === 0) return;
+          h.pop();
+          h.push(t, "");
+          hi = h.length - 1;
+          const { s, a, e } = m(t);
+          jq = jq.then(async (r) => {
+            s();
+            r = (
+              await fetch("/ask", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ t }),
+              })
+            ).body?.getReader();
+            if (r) {
+              for (let p = new TextDecoder(), d = ""; ; ) {
+                const { value, done } = await r.read();
+                if (done) break;
+                d += p.decode(value);
+                a(
+                  d
+                    .replace(/^\s*システム:\s*/g, "")
+                    .replace(/\<\/s\>/g, "")
+                    .replace(/(?:\<0x[0-9A-F]{2}\>)+/gi, (c) =>
+                      p
+                        .decode(
+                          Uint8Array.from(
+                            c
+                              .slice(3, -1)
+                              .split("><0x")
+                              .map((c) => parseInt(c, 16))
+                          )
+                        )
+                        .replace(/\ufffd/g, "")
+                    )
+                );
+              }
+            }
+
+            e();
+          });
+        },
+        rc = () => {
+          ti.style.height =
+            24 * ((ti.value.match(/\n/g) || []).length + 1) + "px";
+        },
+        s = (e) => {
+          q(ti.value);
+          ti.value = "";
+          rc();
+        };
+      ti.addEventListener("keydown", (e) => {
+        //console.log(e.key, h, hi);
+        const { value, selectionStart, selectionEnd } = ti;
+        if (e.key === "Enter" && !e.shiftKey) {
+          s(e.preventDefault());
+        } else if (
+          e.key == "ArrowUp" &&
+          selectionStart === 0 &&
+          selectionEnd === 0 &&
+          hi > 0
+        ) {
+          ti.value = h[--hi];
+        } else if (
+          e.key == "ArrowDown" &&
+          selectionStart === value.length &&
+          selectionEnd === value.length &&
+          hi < h.length - 1
+        ) {
+          ti.value = h[++hi];
+        }
+      });
+      ti.addEventListener("input", (e) => {
+        rc();
+        if (hi === h.length - 1) h[hi] = ti.value;
+      });
+      document.querySelector("#app .ts").addEventListener("click", s);
+      window.addEventListener("resize", u);
+      tl.scrollTop = 0;
+      q("こんにちは。");
+    </script>
+  </body>
+</html>
