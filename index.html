@@ -359,7 +359,7 @@
       ti.addEventListener("keydown", (e) => {
         //console.log(e.key, h, hi);
         const { value, selectionStart, selectionEnd } = ti;
-        if (e.key === "Enter" && !e.shiftKey) {
+        if (e.key === "Enter" && !e.isComposing && !e.shiftKey) {
           s(e.preventDefault());
         } else if (
           e.key == "ArrowUp" &&
